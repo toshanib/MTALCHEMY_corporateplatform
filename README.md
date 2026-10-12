@@ -11,4 +11,3 @@ app screenshots:
 <img width="1029" height="771" alt="image" src="https://github.com/user-attachments/assets/d9db28b5-84d3-4753-8819-1fca3d5be77b" />
 <img width="1029" height="646" alt="image" src="https://github.com/user-attachments/assets/0631b5c4-75ac-457a-bfad-a8a8536f414b" />
 <img width="1029" height="952" alt="image" src="https://github.com/user-attachments/assets/c536d1a3-b778-4100-8753-57187f3dcf3d" />
-<img width="1029" height="952" alt="image" src="https://github.com/user-attachments/assets/2c7546c6-65f0-4a77-ae58-2b24c73ffbac" />
