@@ -1,7 +1,19 @@
 import 'package:flutter/material.dart';
 import 'learning_hub.dart';
+import 'sitemap_screen.dart';
+import 'demo_login_screen.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+import 'register_screen.dart';
+import 'admin_portal.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
   runApp(const MTAlchemyApp());
 }
 
@@ -464,16 +476,22 @@ class SiteHeader extends StatelessWidget {
             )
           else ...[
             const SizedBox(width: 4),
+            TextButton(
+              onPressed: () => onNavigate('Sitemap'),
+              child: const Text('Sitemap'),
+            ),
             IconButton(
               tooltip: 'Open cart',
               onPressed: () => onNavigate('Cart'),
               icon: const Icon(Icons.shopping_bag_outlined, color: navy),
             ),
             const SizedBox(width: 4),
+
             OutlinedButton(
               onPressed: () => onNavigate('Login'),
               child: const Text('Sign in'),
             ),
+
             const SizedBox(width: 8),
             FilledButton(
               style: FilledButton.styleFrom(
@@ -2018,6 +2036,69 @@ class _ContentScreenState extends State<ContentScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.title == 'Register') {
+      return RegisterScreen(
+        onRegistered: () {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => ContentScreen(title: 'Login'),
+            ),
+          );
+        },
+      );
+      if (widget.title == 'Admin Portal') {
+        return const AdminPortalScreen();
+      }
+    }if (widget.title == 'Login') {
+      return DemoLoginScreen(
+        onLogin: (role) {
+          String destination;
+
+          switch (role) {
+            case 'Learner':
+              destination = 'Upskilling';
+              break;
+            case 'Employer':
+              destination = 'Employers';
+              break;
+            case 'Admin':
+              destination = 'Admin Portal';
+              break;
+            default:
+              destination = 'Home';
+          }
+
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => ContentScreen(title: destination),
+            ),
+          );
+        },
+      );
+    }
+    if (widget.title == 'Sitemap') {
+      return SitemapScreen(
+        onNavigate: (page) {
+          if (page == 'Home') {
+            Navigator.popUntil(
+              context,
+                  (route) => route.isFirst,
+            );
+            return;
+          }
+
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => ContentScreen(title: page),
+            ),
+          );
+        },
+      );
+    }
+
     if (widget.title == 'Upskilling') {
       return const LearningHubScreen();
     }
@@ -2029,6 +2110,9 @@ class _ContentScreenState extends State<ContentScreen> {
     }
     if (widget.title == 'Employers') {
       return const EmployerPortalScreen();
+    }
+    if (widget.title == 'Admin Portal') {
+      return const AdminPortalScreen();
     }
     if (widget.title == 'About') {
       return const AboutScreen();
