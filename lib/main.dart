@@ -6,6 +6,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'register_screen.dart';
 import 'admin_portal.dart';
+import 'chatbot_widget.dart';
+import 'team_emotional_weather.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -73,7 +75,10 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: LayoutBuilder(
+      body: Stack(
+        children: [
+
+      LayoutBuilder(
         builder: (context, constraints) {
           final mobile = constraints.maxWidth < 760;
 
@@ -378,9 +383,14 @@ class HomeScreen extends StatelessWidget {
           );
         },
       ),
+    const ChatbotWidget(),
+    ],
+      ),
+
     );
   }
 }
+
 
 // ============================================================
 // 3. HEADER AND NAVIGATION
@@ -1392,6 +1402,402 @@ class CartScreen extends StatefulWidget {
   State<CartScreen> createState() => _CartScreenState();
 }
 
+class CheckoutScreen extends StatefulWidget {
+  const CheckoutScreen({super.key});
+
+  @override
+  State<CheckoutScreen> createState() => _CheckoutScreenState();
+}
+
+class _CheckoutScreenState extends State<CheckoutScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _addressController = TextEditingController();
+
+  String _paymentMethod = 'Online banking (demo)';
+  bool _orderCompleted = false;
+
+  double get subtotal => sampleCart.fold<double>(
+    0,
+        (sum, line) => sum + line.product.price * line.quantity,
+  );
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _addressController.dispose();
+    super.dispose();
+  }
+
+  void _placeOrder() {
+    if (!_formKey.currentState!.validate()) return;
+
+    if (sampleCart.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Your cart is empty. Please add an item first.'),
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      _orderCompleted = true;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: oat,
+      appBar: AppBar(
+        backgroundColor: oat,
+        foregroundColor: navy,
+        elevation: 0,
+        title: const Text('CHECKOUT'),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 900),
+            child: _orderCompleted
+                ? Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(36),
+              decoration: BoxDecoration(
+                color: white,
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: Column(
+                children: [
+                  const Icon(
+                    Icons.check_circle_outline,
+                    color: purple,
+                    size: 72,
+                  ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    'Thank you for your order!',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: navy,
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Your demo order has been recorded for this session. '
+                        'No payment was taken.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: muted, height: 1.6),
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    'Order total: RM ${subtotal.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                      color: navy,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  FilledButton(
+                    style: FilledButton.styleFrom(
+                      backgroundColor: navy,
+                      foregroundColor: white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 16,
+                      ),
+                    ),
+                    onPressed: () {
+                      sampleCart.clear();
+                      refreshSampleCartCount();
+                      Navigator.popUntil(
+                        context,
+                            (route) => route.isFirst,
+                      );
+                    },
+                    child: const Text('Continue shopping'),
+                  ),
+                ],
+              ),
+            )
+                : Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'ALMOST THERE.',
+                    style: TextStyle(
+                      color: purple,
+                      fontSize: 11,
+                      letterSpacing: 2,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Complete your order.',
+                    style: TextStyle(
+                      color: navy,
+                      fontSize: 30,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Enter your details and review your order below.',
+                    style: TextStyle(color: muted, height: 1.6),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Customer details
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: white,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'YOUR DETAILS',
+                          style: TextStyle(
+                            color: navy,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        TextFormField(
+                          controller: _nameController,
+                          decoration: const InputDecoration(
+                            labelText: 'Full name',
+                            border: OutlineInputBorder(),
+                            prefixIcon: Icon(Icons.person_outline),
+                          ),
+                          validator: (value) {
+                            if (value == null ||
+                                value.trim().isEmpty) {
+                              return 'Please enter your name.';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          controller: _emailController,
+                          keyboardType: TextInputType.emailAddress,
+                          decoration: const InputDecoration(
+                            labelText: 'Email address',
+                            border: OutlineInputBorder(),
+                            prefixIcon: Icon(Icons.email_outlined),
+                          ),
+                          validator: (value) {
+                            if (value == null ||
+                                !RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')
+                                    .hasMatch(value.trim())) {
+                              return 'Enter a valid email address.';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          controller: _addressController,
+                          maxLines: 2,
+                          decoration: const InputDecoration(
+                            labelText: 'Billing address',
+                            border: OutlineInputBorder(),
+                            prefixIcon: Icon(Icons.location_on_outlined),
+                          ),
+                          validator: (value) {
+                            if (value == null ||
+                                value.trim().isEmpty) {
+                              return 'Please enter your address.';
+                            }
+                            return null;
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Payment selection
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: white,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'PAYMENT METHOD',
+                          style: TextStyle(
+                            color: navy,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        RadioListTile<String>(
+                          contentPadding: EdgeInsets.zero,
+                          value: 'Online banking (demo)',
+                          groupValue: _paymentMethod,
+                          activeColor: purple,
+                          title: const Text('Online banking'),
+                          subtitle: const Text(
+                            'Demo selection only — no payment is taken.',
+                          ),
+                          onChanged: (value) {
+                            setState(() {
+                              _paymentMethod = value!;
+                            });
+                          },
+                        ),
+                        RadioListTile<String>(
+                          contentPadding: EdgeInsets.zero,
+                          value: 'PayPal (demo)',
+                          groupValue: _paymentMethod,
+                          activeColor: purple,
+                          title: const Text('PayPal'),
+                          subtitle: const Text(
+                            'Preview only — not connected to PayPal.',
+                          ),
+                          onChanged: (value) {
+                            setState(() {
+                              _paymentMethod = value!;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Order summary
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: white,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'ORDER SUMMARY',
+                          style: TextStyle(
+                            color: navy,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        if (sampleCart.isEmpty)
+                          const Text(
+                            'Your cart is empty.',
+                            style: TextStyle(color: muted),
+                          )
+                        else
+                          ...sampleCart.map(
+                                (line) => Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      '${line.product.name} × ${line.quantity}',
+                                      style: const TextStyle(
+                                        color: navy,
+                                      ),
+                                    ),
+                                  ),
+                                  Text(
+                                    'RM ${(line.product.price * line.quantity).toStringAsFixed(2)}',
+                                    style: const TextStyle(
+                                      color: navy,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        const Divider(height: 28),
+                        Row(
+                          mainAxisAlignment:
+                          MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              'Total',
+                              style: TextStyle(
+                                color: navy,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              'RM ${subtotal.toStringAsFixed(2)}',
+                              style: const TextStyle(
+                                color: purple,
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'This is a coursework checkout prototype. '
+                              'No real payment details are collected or processed.',
+                          style: TextStyle(
+                            color: muted,
+                            fontSize: 12,
+                            height: 1.5,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        SizedBox(
+                          width: double.infinity,
+                          child: FilledButton.icon(
+                            style: FilledButton.styleFrom(
+                              backgroundColor: navy,
+                              foregroundColor: white,
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 18,
+                              ),
+                            ),
+                            onPressed: sampleCart.isEmpty
+                                ? null
+                                : _placeOrder,
+                            icon: const Icon(Icons.lock_outline),
+                            label: const Text('Place demo order'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _CartScreenState extends State<CartScreen> {
   double get subtotal => sampleCart.fold<double>(
     0,
@@ -1653,34 +2059,10 @@ class _CartScreenState extends State<CartScreen> {
                                 padding: const EdgeInsets.symmetric(vertical: 17),
                               ),
                               onPressed: () {
-                                showDialog<void>(
-                                  context: context,
-                                  builder: (dialogContext) => AlertDialog(
-                                    title: const Text('Checkout preview'),
-                                    content: Text(
-                                      'Your sample order total is RM ${subtotal.toStringAsFixed(2)}. '
-                                          'This checkpoint prototype does not process payments.',
-                                    ),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () => Navigator.pop(dialogContext),
-                                        child: const Text('Close'),
-                                      ),
-                                      FilledButton(
-                                        onPressed: () {
-                                          sampleCart.clear();
-                                          refreshSampleCartCount();
-                                          Navigator.pop(dialogContext);
-                                          setState(() {});
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            const SnackBar(
-                                              content: Text('Sample checkout completed. No payment was processed.'),
-                                            ),
-                                          );
-                                        },
-                                        child: const Text('Complete demo'),
-                                      ),
-                                    ],
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const CheckoutScreen(),
                                   ),
                                 );
                               },
@@ -1806,11 +2188,86 @@ class _EmployerPortalScreenState extends State<EmployerPortalScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+
                 const Text('ORGANISATION WORKSPACE', style: TextStyle(color: purple, fontSize: 11, letterSpacing: 2, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 10),
                 const Text('Help your people grow.', style: TextStyle(color: navy, fontSize: 34, height: 1.15, fontWeight: FontWeight.w800)),
                 const SizedBox(height: 10),
-                const Text('Manage your team, assign learning pathways and see progress in one place.', style: TextStyle(color: muted, fontSize: 15, height: 1.6)),
+                const Text(
+                  'Manage your team, assign learning pathways and see progress in one place.',
+                  style: TextStyle(color: muted, fontSize: 15, height: 1.6),
+                ),
+                const SizedBox(height: 24),
+
+// TEAM EMOTIONAL WEATHER CARD
+                InkWell(
+                  borderRadius: BorderRadius.circular(20),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const TeamEmotionalWeatherScreen(),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(22),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEAE5F5),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const Row(
+                      children: [
+                        Icon(
+                          Icons.cloud_outlined,
+                          color: Color(0xFF7655A6),
+                          size: 40,
+                        ),
+                        SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'TEAM EMOTIONAL WEATHER',
+                                style: TextStyle(
+                                  color: Color(0xFF7655A6),
+                                  fontSize: 11,
+                                  letterSpacing: 1.5,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              SizedBox(height: 6),
+                              Text(
+                                'Check in with your team.',
+                                style: TextStyle(
+                                  color: Color(0xFF24213D),
+                                  fontSize: 19,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              SizedBox(height: 5),
+                              Text(
+                                'Explore team mood trends and wellbeing activities.',
+                                style: TextStyle(
+                                  color: Color(0xFF777386),
+                                  height: 1.4,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(width: 8),
+                        Icon(
+                          Icons.arrow_forward_rounded,
+                          color: Color(0xFF7655A6),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
                 const SizedBox(height: 24),
                 _portalPanel(
                   child: LayoutBuilder(builder: (context, box) {
@@ -2820,3 +3277,4 @@ class _CallToAction extends StatelessWidget {
     ),
   );
 }
+
