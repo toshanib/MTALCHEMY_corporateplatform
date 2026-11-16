@@ -1,3 +1,5 @@
+firebase collectionss: 
+<img width="1128" height="358" alt="image" src="https://github.com/user-attachments/assets/18e49c1b-fb8c-4542-9824-c04d427e8803" />
 app screenshots: 
 
 <img width="1277" height="697" alt="image" src="https://github.com/user-attachments/assets/d75f10c5-7a68-4d5f-b771-ec62fb08f247" />
